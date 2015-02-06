@@ -85,16 +85,25 @@ class SQLObject
     VALUES
       (#{(["?"] * self.class.columns.count).join(",")})
     SQL
-    
+
     send(:id=, DBConnection.last_insert_row_id)
     self
   end
 
   def update
-    # ...
+    DBConnection.execute(<<-SQL, attributes)
+    UPDATE
+      #{self.class.table_name}
+    SET
+      #{self.class.columns.map { |col| "#{col} = :#{col}"}.join(", ")}
+    WHERE
+      id = :id
+    SQL
+
+    self
   end
 
   def save
-    # ...
+    id.nil? ? insert : update
   end
 end
