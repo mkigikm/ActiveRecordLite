@@ -33,7 +33,7 @@ class SQLObject
   def self.all
     results = DBConnection.execute(<<-SQL)
     SELECT
-      #{table_name}.*
+      *
     FROM
       #{table_name}
     SQL
@@ -42,15 +42,15 @@ class SQLObject
   end
 
   def self.parse_all(results)
-    results.map do |r|
-      new(r)
+    results.map do |result|
+      new(result)
     end
   end
 
   def self.find(id)
     result = DBConnection.execute(<<-SQL, id)
     SELECT
-      #{table_name}.*
+      *
     FROM
       #{table_name}
     WHERE
@@ -66,7 +66,7 @@ class SQLObject
         raise "unknown attribute '#{attr_name}'"
       end
 
-      send(attr_name.to_s+"=", value)
+      send("#{attr_name.to_s}=", value)
     end
   end
 
@@ -87,6 +87,7 @@ class SQLObject
     SQL
 
     send(:id=, DBConnection.last_insert_row_id)
+    
     self
   end
 
