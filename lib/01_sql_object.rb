@@ -79,24 +79,31 @@ class SQLObject
   end
 
   def insert
+    attr_names = self.class.columns.join(",")
+    value_placeholder = (["?"] * self.class.columns.count).join(",")
+
     DBConnection.execute(<<-SQL, *attribute_values)
     INSERT INTO
-      #{self.class.table_name} (#{self.class.columns.join(",")})
+      #{self.class.table_name} (#{attr_names})
     VALUES
-      (#{(["?"] * self.class.columns.count).join(",")})
+      (#{value_placeholder})
     SQL
 
     send(:id=, DBConnection.last_insert_row_id)
-    
+
     self
   end
 
   def update
+    attr_names = self.class.columns.map do |col|
+      "#{col} = :#{col}"
+    end.join(", ")
+
     DBConnection.execute(<<-SQL, attributes)
     UPDATE
       #{self.class.table_name}
     SET
-      #{self.class.columns.map { |col| "#{col} = :#{col}"}.join(", ")}
+      #{attr_names}
     WHERE
       id = :id
     SQL
